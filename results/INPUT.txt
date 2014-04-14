@@ -1,0 +1,2 @@
+X Cells: 10
+Y Cells: 10
