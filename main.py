@@ -1,24 +1,19 @@
 import time, sys
 from versiondata import verData
 from inputdata import process
+from inputecho import inputecho
+from solver import diffSolver
 
-
-version = "0.01"
+version = "0.02"
 
 def main():
     input = open('results/INPUT.txt', 'r')
     output = open('results/OUTPUT.txt', 'w')
     startTime = time.clock()
     verData(version, output)
-    process(input)
-
-
-
-
-
-
-
-
+    data = process(input)
+    inputecho(data, output)
+    diffSolver(data)
 
 
 
@@ -30,9 +25,10 @@ def main():
     print "Time to Execute: " + str(executionTime) + " seconds"
     input.close()
     output.close()
-    
+    return
 
     
 if (__name__ == "__main__"):
     main()
+    
 
