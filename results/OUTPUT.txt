@@ -1,7 +1,7 @@
 2-D Diffusion Solver
 Version Number 0.02
 Author: Robinson Kuo
-Computation Started at Mon Apr 21 00:25:29 2014
+Computation Started at Mon Apr 21 03:32:42 2014
 
 Size of unit cells:
 x-length [cm]: 1.4

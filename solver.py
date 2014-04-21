@@ -4,5 +4,9 @@ import numpy as np
 
 def diffSolver(inputDataInfo):
     xyCells = inputDataInfo.xycells
-    
-    np.mat
+    materials = inputDataInfo.materials
+    xdim = inputDataInfo.xdim
+    ydim = inputDataInfo.ydim
+    xnum = inputDataInfo.x
+    ynum = inputDataInfo.y
+    print("Will solve here")
