@@ -9,8 +9,9 @@ import numpy as np
 version = "0.06"
 
 def main():
-    input = open('results/INPUT.txt', 'r')
-    output = open('results/OUTPUT.txt', 'w')
+    input = open('results/INPUT.txt', 'rb')
+    output = open('results/OUTPUT.txt', 'wb')
+    matlab = open('results/OUTPUT.m', 'wb')
     startTime = time.clock()
     verData(version, output)
     print "Scanning input data..."
@@ -21,12 +22,12 @@ def main():
     xedges = data.getXcells()+1
     yedges = data.getYcells()+1
     inputecho(data, output)
-    solutions, error, iterations = diffSolver(data)
+    solutions, error, iterations = diffSolver(data, matlab)
     #print solutions
     fluxmap =[]
     for y in xrange(yedges):
         fluxmap.append(solutions[xedges*y:xedges*(y+1)])
-    writeOutput(output, fluxmap, error, iterations, xedges, yedges, xlen, ylen)
+    writeOutput(output, fluxmap, error, iterations, xedges, yedges, xlen, ylen, matlab, solutions)
     fluxmap = np.array(fluxmap)
     if iterations > 0:
         pl.pcolor(fluxmap)
@@ -42,11 +43,12 @@ def main():
     print "Time to Execute: " + str(executionTime) + " seconds"
     input.close()
     output.close()
+    matlab.close()
     if iterations > 0:
         pl.show()
     return
 
-def writeOutput(writeTo, fluxes, error, iterations, xedges, yedges, xlen, ylen):
+def writeOutput(writeTo, fluxes, error, iterations, xedges, yedges, xlen, ylen, matlab, solutions):
     writeTo.write('\nIterations to reach convergence: ' + str(iterations) + '\n')
     error_string = "%.5g" % error
     writeTo.write('Relative error between last iterations: ' + error_string + '\n\n')
@@ -81,7 +83,17 @@ def writeOutput(writeTo, fluxes, error, iterations, xedges, yedges, xlen, ylen):
         while spaces > 0:
             writeTo.write(" ")
             spaces -= 1
-        
+            
+    # Writing the result vector to matlab
+    matlab.write("phi = [")
+    matlab.write(str(solutions[0]))
+    for s in solutions[1:]:
+        matlab.write("; " + str(s))
+    matlab.write("];\n")
+    if len(solutions) < 200:
+        matlab.write("phi_direct = inv(A)*S;\n")
+        matlab.write("error_vector = phi_direct-phi;\n")
+        matlab.write("error = norm(phi_direct-phi, 2)/(norm(phi_direct, 2));")
     return
     
 if (__name__ == "__main__"):

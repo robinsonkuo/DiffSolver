@@ -14,6 +14,11 @@ def inputecho(inputDataInfo, writeTo):
     writeTo.write("Geometry of the system with material index used in each cell\n")
     for y in xrange(inputDataInfo.y, 0, -1):
         for x in xrange(1, inputDataInfo.x+1):
-            writeTo.write(str(inputDataInfo.xycells[x][y]) + " ")
+            spaces = 4
+            writeTo.write(str(inputDataInfo.xycells[x][y]))
+            spaces -= len(str(inputDataInfo.xycells[x][y]))
+            while spaces > 0:
+                writeTo.write(" ")
+                spaces -= 1
         writeTo.write("\n")
     

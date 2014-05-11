@@ -4,17 +4,14 @@ import time
 
 """ Assuming vacuum boundary conditions in bottom/left faces and reflecting in top/right faces"""
 
-def diffSolver(IDI):
-    materials = IDI.materials
-    source = IDI.getSource()
+def diffSolver(IDI, matlab):
+    sources = IDI.getSources()
     xdim = IDI.xdim
     ydim = IDI.ydim
     xnum = IDI.x
     ynum = IDI.y
     rel_error = IDI.getRelError()
-    # Create uniform source vector.
-    Svector = [source for x in xrange((xnum+1)*(ynum+1))]
-    
+    Svector = [0 for z in xrange((xnum+1)*(ynum+1))]
     print "Building the matrix..."
     # Create the Amatrix, set everything to 0 first. Indexed by rows then columns
     Amatrix = [[0 for b in xrange((xnum+1)*(ynum+1))] for a in xrange((xnum+1)*(ynum+1))]
@@ -34,11 +31,16 @@ def diffSolver(IDI):
             mat10 = IDI.getCellMaterialData(x+1,y)
             mat01 = IDI.getCellMaterialData(x,y+1)
             mat11 = IDI.getCellMaterialData(x+1,y+1)
+            s00 = sources[x][y]
+            s10 = sources[Rx][y]
+            s01 = sources[x][Uy]
+            s11 = sources[Rx][Uy]
             a_L = -(mat00[0]+mat01[0])*ydim/(2*xdim)
             a_R = -(mat10[0]+mat11[0])*ydim/(2*xdim)
             a_B = -(mat00[0]+mat10[0])*xdim/(2*ydim)
             a_T = -(mat01[0]+mat11[0])*xdim/(2*ydim)
             sigma = xdim*ydim*(mat00[1]+mat10[1]+mat01[1]+mat11[1])/4
+            Svector[x+y*(xnum + 1)] = xdim*ydim*(s00+s10+s01+s11)/4
             a_C = sigma - (a_L + a_R + a_B + a_T)
             setMatrix(Amatrix, x, y, Lx, y, a_L, xnum)
             setMatrix(Amatrix, x, y, Rx, y, a_R, xnum)
@@ -53,12 +55,14 @@ def diffSolver(IDI):
         Uy = y+1
         mat00 = IDI.getCellMaterialData(1,y)
         mat01 = IDI.getCellMaterialData(1,y+1)
+        s00 = sources[x][y]
+        s01 = sources[x][Uy]
         a_L = -(mat00[0]+mat01[0])*ydim/(2*xdim)
         a_R = a_L
         a_B = -mat00[0]*xdim/(2*ydim)
         a_T = -mat01[0]*xdim/(2*ydim)
         sigma = xdim*ydim*(mat00[1]+mat01[1])/4
-        Svector[x+y*(xnum + 1)] = source/2
+        Svector[x+y*(xnum + 1)] = xdim*ydim*(s00+s01)/4
         a_C = sigma - (a_L + a_R + a_B + a_T)
         setMatrix(Amatrix, x, y, Rx, y, a_R, xnum)
         setMatrix(Amatrix, x, y, x, Dy, a_B, xnum)
@@ -72,11 +76,13 @@ def diffSolver(IDI):
         Uy = y+1
         mat00 = IDI.getCellMaterialData(x,y)
         mat01 = IDI.getCellMaterialData(x,y+1)
+        s00 = sources[x][y]
+        s01 = sources[x][Uy]
         a_L = -(mat00[0]+mat01[0])*ydim/(2*xdim)
         a_B = -mat00[0]*xdim/(2*ydim)
         a_T = -mat01[0]*xdim/(2*ydim)
         sigma = xdim*ydim*(mat00[1]+mat01[1])/4
-        Svector[x+y*(xnum + 1)] = source/2
+        Svector[x+y*(xnum + 1)] = xdim*ydim*(s00+s01)/4
         a_C = sigma - (a_L + a_B + a_T)        
         setMatrix(Amatrix, x, y, Lx, y, a_L, xnum)
         setMatrix(Amatrix, x, y, x, Dy, a_B, xnum)
@@ -90,12 +96,14 @@ def diffSolver(IDI):
         Uy = y+1
         mat00 = IDI.getCellMaterialData(x,1)
         mat10 = IDI.getCellMaterialData(x+1,1)
+        s00 = sources[x][y]
+        s10 = sources[Rx][y]
         a_L = -(mat00[0])*ydim/(2*xdim)
         a_R = -(mat10[0])*ydim/(2*xdim)
         a_B = -(mat00[0]+mat10[0])*xdim/(2*ydim)
         a_T = a_B
         sigma = xdim*ydim*(mat00[1]+mat10[1])/4
-        Svector[x+y*(xnum + 1)] = source/2
+        Svector[x+y*(xnum + 1)] = xdim*ydim*(s00+s10)/4
         a_C = sigma - (a_L + a_R + a_B + a_T)
         setMatrix(Amatrix, x, y, Lx, y, a_L, xnum)
         setMatrix(Amatrix, x, y, Rx, y, a_R, xnum)
@@ -109,11 +117,13 @@ def diffSolver(IDI):
         Dy = y-1
         mat00 = IDI.getCellMaterialData(x,y)
         mat10 = IDI.getCellMaterialData(x+1,y)
+        s00 = sources[x][y]
+        s10 = sources[Rx][y]
         a_L = -(mat00[0])*ydim/(2*xdim)
         a_R = -(mat10[0])*ydim/(2*xdim)
         a_B = -(mat00[0]+mat10[0])*xdim/(2*ydim)
         sigma = xdim*ydim*(mat00[1]+mat10[1])/4
-        Svector[x+y*(xnum + 1)] = source/2
+        Svector[x+y*(xnum + 1)] = xdim*ydim*(s00+s10)/4
         a_C = sigma - (a_L + a_R + a_B)
         setMatrix(Amatrix, x, y, Lx, y, a_L, xnum)
         setMatrix(Amatrix, x, y, Rx, y, a_R, xnum)
@@ -126,12 +136,13 @@ def diffSolver(IDI):
     Rx = x+1
     Uy = y+1
     mat00 = IDI.getCellMaterialData(1,1)
+    s00 = sources[x][y]
     a_L = -(mat00[0])*ydim/(2*xdim)
     a_R = -(mat00[0])*ydim/(2*xdim)
     a_B = -(mat00[0])*xdim/(2*ydim)
     a_T = -(mat00[0])*xdim/(2*ydim)
     sigma = xdim*ydim*(mat00[1])/4
-    Svector[x+y*(xnum + 1)] = source/4
+    Svector[x+y*(xnum + 1)] = xdim*ydim*s00/4
     a_C = sigma - (a_L + a_R + a_B + a_T)
     setMatrix(Amatrix, x, y, Rx, y, a_R, xnum)
     setMatrix(Amatrix, x, y, x, Uy, a_T, xnum)
@@ -142,11 +153,12 @@ def diffSolver(IDI):
     Rx = x+1
     Dy = y-1
     mat00 = IDI.getCellMaterialData(1,y)
+    s00 = sources[x][y]
     a_L = -(mat00[0])*ydim/(2*xdim)
     a_R = a_L
     a_B = -(mat00[0])*xdim/(2*ydim)
     sigma = xdim*ydim*(mat00[1])/4
-    Svector[x+y*(xnum + 1)] = source/4
+    Svector[x+y*(xnum + 1)] = xdim*ydim*s00/4
     a_C = sigma - (a_L + a_R + a_B)
     setMatrix(Amatrix, x, y, Rx, y, a_R, xnum)
     setMatrix(Amatrix, x, y, x, Dy, a_B, xnum)
@@ -157,10 +169,11 @@ def diffSolver(IDI):
     Lx = x-1
     Dy = y-1
     mat00 = IDI.getCellMaterialData(x,y)
+    s00 = sources[x][y]
     a_L = -(mat00[0])*ydim/(2*xdim)
     a_B = -(mat00[0])*xdim/(2*ydim)
     sigma = xdim*ydim*(mat00[1])/4
-    Svector[x+y*(xnum + 1)] = source/4
+    Svector[x+y*(xnum + 1)] = xdim*ydim*s00/4
     a_C = sigma - (a_L + a_B)
     setMatrix(Amatrix, x, y, Lx, y, a_L, xnum)
     setMatrix(Amatrix, x, y, x, Dy, a_B, xnum)
@@ -171,16 +184,33 @@ def diffSolver(IDI):
     Lx = x-1
     Uy = y+1
     mat00 = IDI.getCellMaterialData(x,y)
+    s00 = sources[x][y]
     a_L = -(mat00[0])*ydim/(2*xdim)
     a_B = -(mat00[0])*xdim/(2*ydim)
     a_T = -(mat00[0])*xdim/(2*ydim)
     sigma = xdim*ydim*(mat00[1])/4
-    Svector[x+y*(xnum + 1)] = source/4
+    Svector[x+y*(xnum + 1)] = xdim*ydim*s00/4
     a_C = sigma - (a_L + a_B + a_T)
     setMatrix(Amatrix, x, y, Lx, y, a_L, xnum)
     setMatrix(Amatrix, x, y, x, Uy, a_T, xnum)
     setMatrix(Amatrix, x, y, x, y, a_C, xnum)
     # This should be it for matrix construction
+    # Detour to fill in matlab file
+    if len(Amatrix) < 200:
+        matlab.write("S = [")
+        matlab.write(str(Svector[0]))
+        for s in Svector[1:]:
+            matlab.write("; " + str(s))
+        matlab.write("];\n")
+        matlab.write("A = [")
+        for i in xrange(len(Amatrix)):
+            if (i > 0):
+                matlab.write(";\n ")
+            matlab.write(str(Amatrix[i][0]))
+            for j in xrange(len(Amatrix[i][1:])):
+                matlab.write(", " + str(Amatrix[i][j+1]))
+        matlab.write("];\n")
+    # Now back to the show
     
 
     print "Matrix is complete..."
@@ -207,8 +237,7 @@ def GaussSeidel(A, b, x_0, tol, xnum, absolute=False):
     
     # Check if b is all zeros, if so, then just return all 0s
     
-    if all(b) == 0:
-        print "ALL ZERO"
+    if all(s == 0 for s in b):
         return x_new, 0, 0
     
     # We also need to initialize the error and track the iteration count
