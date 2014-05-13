@@ -59,6 +59,7 @@ Relative error tolerance: 1.0E-6
 Note that all character strings that don't describe numbers must appear exactly as shown.
 
 Going line by line:
+
 X Cells: 50 % Specifies the number of cells in the x-direction for the problem (must be positive integer)
 
 Y Cells: 60 % Specifies the number of cells in the y-direction for the problem (must be positive integer)
