@@ -6,23 +6,27 @@ from solver import diffSolver
 import pylab as pl
 import numpy as np
 
-version = "0.06"
+version = "0.10"
+SOLUTION_LIMIT = 500 # Adjust this to be greater if one desires the A_matrix and Source vector to be included in the matlab output
+
 
 def main():
-    input = open('results/INPUT.txt', 'rb')
+    inputF = open('INPUT.txt', 'rb')
     output = open('results/OUTPUT.txt', 'wb')
     matlab = open('results/OUTPUT.m', 'wb')
     startTime = time.clock()
     verData(version, output)
     print "Scanning input data..."
-    data = process(input)
+    data = process(inputF)
     print "Input data verified..."
     xlen = data.getXdim()
     ylen = data.getYdim()
     xedges = data.getXcells()+1
     yedges = data.getYcells()+1
-    inputecho(data, output)
-    solutions, error, iterations = diffSolver(data, matlab)
+    inputF.close()
+    inputF = open('INPUT.txt', 'rb')
+    inputecho(data, output, inputF)
+    solutions, error, iterations = diffSolver(data, matlab, SOLUTION_LIMIT)
     #print solutions
     fluxmap =[]
     for y in xrange(yedges):
@@ -41,7 +45,7 @@ def main():
     executionTime = endTime-startTime
     
     print "Time to Execute: " + str(executionTime) + " seconds"
-    input.close()
+    inputF.close()
     output.close()
     matlab.close()
     if iterations > 0:
@@ -56,7 +60,7 @@ def writeOutput(writeTo, fluxes, error, iterations, xedges, yedges, xlen, ylen, 
     writeTo.write("Flux values [n/cm^2s]\n\n")
     for y in xrange(len(fluxes)-1, -1, -1):
         y_value = y*ylen
-        y_str = "|%.6g cm|" % y_value
+        y_str = "|%.4g cm|" % y_value
         writeTo.write(y_str)
         spaces = 15 - len(y_str)
         while spaces > 0:
@@ -64,7 +68,7 @@ def writeOutput(writeTo, fluxes, error, iterations, xedges, yedges, xlen, ylen, 
             spaces -= 1
         for x in xrange(len(fluxes[y])):
             # total string length of flux value and subsequent spacing should be 14 spaces
-            flux = "%.6g" % fluxes[y][x]
+            flux = "%.4g" % fluxes[y][x]
             writeTo.write(flux)
             spaces = 14 - len(flux)
             while spaces > 0:
@@ -77,7 +81,7 @@ def writeOutput(writeTo, fluxes, error, iterations, xedges, yedges, xlen, ylen, 
         spaces -= 1
     for x in xrange(len(fluxes[0])):
         x_value = x*xlen
-        x_str = "|%.6g cm|" % x_value
+        x_str = "|%.4g cm|" % x_value
         writeTo.write(x_str)
         spaces = 14 - len(x_str)
         while spaces > 0:
@@ -90,8 +94,8 @@ def writeOutput(writeTo, fluxes, error, iterations, xedges, yedges, xlen, ylen, 
     for s in solutions[1:]:
         matlab.write("; " + str(s))
     matlab.write("];\n")
-    if len(solutions) < 200:
-        matlab.write("phi_direct = inv(A)*S;\n")
+    if len(solutions) < SOLUTION_LIMIT:
+        matlab.write("phi_direct = inv(A)*source;\n")
         matlab.write("error_vector = phi_direct-phi;\n")
         matlab.write("error = norm(phi_direct-phi, 2)/(norm(phi_direct, 2));")
     return

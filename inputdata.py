@@ -1,15 +1,5 @@
 import sys, numpy
 
-properFormat = []
-properFormat.append("X Cells: ")
-properFormat.append("Y Cells: ")
-properFormat.append("X-dimension [cm]: ")
-properFormat.append("Y-dimension [cm]: ")
-properFormat.append("Number of materials: ")
-properFormat.append("Source Term: ")
-
-
-
 
 class inputDataInfo:
     
@@ -67,18 +57,20 @@ class inputDataInfo:
         
         # Materials are entered with Diffusion Coefficient then cross section
         for i in xrange(self.numMat):
-            matLine = inputFile.readline()
-            if matLine.startswith(str(i) + " "):
-                matLine = matLine[len(str(i) + " "):]
-                matData = matLine.split(" ")
-                self.materials[i] = [float(j) for j in matData[:2]] #Stops at 2 to exclude the \n character
-                if self.materials[i][0] < 0:
-                    raise Exception("Material " + str(i) + " cannot have a negative diffusion coefficient")
-                if self.materials[i][1] < 0:
-                    raise Exception("Material " + str(i) + " cannot have a negative cross section")
-            else:
-                raise Exception("Material " + str(i) + " has an invalid diffusion coefficient/cross section formatting")
-        
+            try: 
+                matLine = inputFile.readline()
+                if matLine.startswith(str(i) + " "):
+                    matLine = matLine[len(str(i) + " "):]
+                    matData = matLine.split(" ")
+                    self.materials[i] = [float(j) for j in matData[:2]] #Stops at 2 to exclude the \n character
+                    if self.materials[i][0] < 0:
+                        raise Exception("Material " + str(i) + " cannot have a negative diffusion coefficient")
+                    if self.materials[i][1] < 0:
+                        raise Exception("Material " + str(i) + " cannot have a negative cross section")
+                else:
+                    raise Exception("Material " + str(i) + " has an invalid diffusion coefficient/cross section formatting")
+            except:
+                raise Exception("Materials not properly formatted")
 
         
         defmatLine = inputFile.readline()
@@ -99,23 +91,26 @@ class inputDataInfo:
             raise Exception("Number of geometries should be ... Number of geometries: #")
         
         for i in xrange(self.numGeo):
-            geoLine = inputFile.readline()
-            rectLine = geoLine.split(" ")
-            rectData = [int(j) for j in rectLine[:4]]
-            material = int(rectLine[4])
-            if material < 0:
-                raise Exception("Materials in geometries must be non-negative numbers")
-            for x in xrange(rectData[0]-1, rectData[2]):
-                for y in xrange(rectData[1]-1, rectData[3]):
-                    self.xycells[x][y] = material
+            try:
+                geoLine = inputFile.readline()
+                rectLine = geoLine.split(" ")
+                rectData = [int(j) for j in rectLine[:4]]
+                material = int(rectLine[4])
+                if material < 0:
+                    raise Exception("Materials in geometries must be non-negative numbers")
+                for x in xrange(rectData[0]-1, rectData[2]):
+                    for y in xrange(rectData[1]-1, rectData[3]):
+                        self.xycells[x][y] = material
+            except:
+                raise Exception("Geometries improperly formatted")
                     
         sourceLine = inputFile.readline()
-        if sourceLine.startswith("Default source[n/cm3s]: "):
-            self.source = float(sourceLine[len("Default source[n/cm3s]: "):])
+        if sourceLine.startswith("Default source [n/cm3s]: "):
+            self.source = float(sourceLine[len("Default source [n/cm3s]: "):])
             if self.source < 0:
                 raise Exception("Source term cannot be negative")
         else:
-            raise Exception("Source term should be ... Default source[n/cm3s]: #")
+            raise Exception("Source term should be ... Default source [n/cm3s]: #")
         
         numSourceLine = inputFile.readline()
         if numSourceLine.startswith("Number of unique sources: "):
@@ -129,15 +124,18 @@ class inputDataInfo:
         for i in xrange(self.x+1):
             self.sources.append((self.y+1)*[self.source])
         for i in xrange(self.numSources):
-            sgeoLine = inputFile.readline()
-            srectLine = sgeoLine.split(" ")
-            srectData = [int(j) for j in srectLine[:4]]
-            source_val = float(srectLine[4])
-            if source_val < 0:
-                raise Exception("Source values must be non-negative")
-            for x1 in xrange(srectData[0]-1, srectData[2]):
-                for y1 in xrange(srectData[1]-1, srectData[3]):
-                    self.sources[x1][y1] = source_val
+            try:
+                sgeoLine = inputFile.readline()
+                srectLine = sgeoLine.split(" ")
+                srectData = [int(j) for j in srectLine[:4]]
+                source_val = float(srectLine[4])
+                if source_val < 0:
+                    raise Exception("Source values must be non-negative")
+                for x1 in xrange(srectData[0]-1, srectData[2]):
+                    for y1 in xrange(srectData[1]-1, srectData[3]):
+                        self.sources[x1][y1] = source_val
+            except:
+                raise Exception("Unique sources improperly formatted")
         
         errorLine = inputFile.readline()
         if errorLine.startswith("Relative error tolerance: "):

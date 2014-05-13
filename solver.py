@@ -4,7 +4,7 @@ import time
 
 """ Assuming vacuum boundary conditions in bottom/left faces and reflecting in top/right faces"""
 
-def diffSolver(IDI, matlab):
+def diffSolver(IDI, matlab, SOLUTION_LIMIT):
     sources = IDI.getSources()
     xdim = IDI.xdim
     ydim = IDI.ydim
@@ -147,6 +147,8 @@ def diffSolver(IDI, matlab):
     setMatrix(Amatrix, x, y, Rx, y, a_R, xnum)
     setMatrix(Amatrix, x, y, x, Uy, a_T, xnum)
     setMatrix(Amatrix, x, y, x, y, a_C, xnum) 
+    
+    
     # Top left (vacuum left, reflecting top)
     x = 0
     y = ynum
@@ -163,6 +165,8 @@ def diffSolver(IDI, matlab):
     setMatrix(Amatrix, x, y, Rx, y, a_R, xnum)
     setMatrix(Amatrix, x, y, x, Dy, a_B, xnum)
     setMatrix(Amatrix, x, y, x, y, a_C, xnum)
+    
+    
     # Top right (both reflecting)
     x = xnum
     y = ynum
@@ -178,6 +182,8 @@ def diffSolver(IDI, matlab):
     setMatrix(Amatrix, x, y, Lx, y, a_L, xnum)
     setMatrix(Amatrix, x, y, x, Dy, a_B, xnum)
     setMatrix(Amatrix, x, y, x, y, a_C, xnum)
+    
+    
     # Bottom right (vacuum bottom, reflecting right)
     x = xnum
     y = 0
@@ -194,10 +200,13 @@ def diffSolver(IDI, matlab):
     setMatrix(Amatrix, x, y, Lx, y, a_L, xnum)
     setMatrix(Amatrix, x, y, x, Uy, a_T, xnum)
     setMatrix(Amatrix, x, y, x, y, a_C, xnum)
+    
+    
     # This should be it for matrix construction
     # Detour to fill in matlab file
-    if len(Amatrix) < 200:
-        matlab.write("S = [")
+    if len(Amatrix) < SOLUTION_LIMIT:
+        print "Preparing Matlab output..."
+        matlab.write("source = [")
         matlab.write(str(Svector[0]))
         for s in Svector[1:]:
             matlab.write("; " + str(s))
@@ -210,6 +219,7 @@ def diffSolver(IDI, matlab):
             for j in xrange(len(Amatrix[i][1:])):
                 matlab.write(", " + str(Amatrix[i][j+1]))
         matlab.write("];\n")
+        print "Finished preparing Matlab output..."
     # Now back to the show
     
 
@@ -243,7 +253,7 @@ def GaussSeidel(A, b, x_0, tol, xnum, absolute=False):
     # We also need to initialize the error and track the iteration count
     error = 1.0
     itr = 0
-    max_itr = 1e5 # Don't do more than this many iterations
+    max_itr = 1e6 # Don't do more than this many iterations
     
     # Keep iterating until we get a 2-norm error under the tolerance
     # or we reach the max iteration count.
