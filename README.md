@@ -45,7 +45,7 @@ Number of geometries: 1
 
 20 20 25 25 1
 
-Default source[n/cm3s]: 100.6
+Default source [n/cm3s]: 100.6
 
 Number of unique sources: 2
 
@@ -82,7 +82,7 @@ overwrites the default material for the specified cells (non-negative integer; N
 
 20 20 25 25 1 % Specifies the lower x, lower y, upper x and upper y cells (inclusive) of the rectangle to be filled with material index (1 in this case). All cell values must be non-negative integers and the material index must have been specified under materials. NOTE: If rectangles overlap, the last entry specified will fill the overlapping area. 
 
-Default source[n/cm3s]: 100.6 % Specifies the source value that fills all cells not otherwise specified (Non-negative real number)
+Default source [n/cm3s]: 100.6 % Specifies the source value that fills all cells not otherwise specified (Non-negative real number)
 
 Number of unique sources: 2 % Number of rectangles filled with a single source value that are to be placed on the surface; overwrites the default source for the specified cells (non-negative integer; NOTE: If this is 0, then there should be no unique source lines and the next line should be the Relative error tolerance line).
 
