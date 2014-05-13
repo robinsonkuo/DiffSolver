@@ -1,5 +1,0 @@
-2-D Diffusion Solver
-Version Number 0.01
-Author: Robinson Kuo
-Computation Started at Sun Apr 13 17:03:13 2014
-
